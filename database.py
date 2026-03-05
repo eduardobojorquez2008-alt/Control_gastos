@@ -27,11 +27,13 @@ def leer_gastos() -> pd.DataFrame:
         if datos:
             return pd.DataFrame(datos, columns=COLUMNAS)
         return pd.DataFrame(columns=COLUMNAS)
-    except Exception:
+    except Exception as e:
+        st.error(f"Error al conectar con Google Sheets: {e}")
         return pd.DataFrame(columns=COLUMNAS)
 
 def eliminar_gasto(indice: int) -> None:
     hoja = conectar()
     hoja.delete_rows(indice + 2)
+
 
 
