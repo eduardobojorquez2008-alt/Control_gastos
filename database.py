@@ -1,29 +1,35 @@
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
-import os
+import streamlit as st
 
-ARCHIVO = "gastos.csv"
+SHEET_ID = "15pDT5c1dVxTiFVN3F49qzUCPcVm9fX2UFRnUuO7i100"
 COLUMNAS = ["Nombre", "Categoria", "Monto", "Fecha"]
+SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-def inicializar_archivo() -> None:
-    if not os.path.exists(ARCHIVO):
-        pd.DataFrame(columns=COLUMNAS).to_csv(ARCHIVO, index=False, encoding='utf-8')
+def conectar():
+    credenciales = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(credenciales, SCOPE)
+    cliente = gspread.authorize(creds)
+    return cliente.open_by_key(SHEET_ID).sheet1
+
+def inicializar_archivo():
+    pass  # Google Sheets ya tiene los encabezados
 
 def guardar_gasto(nombre: str, categoria: str, monto: float, fecha) -> None:
-    nuevo = pd.DataFrame([[nombre, categoria, monto, fecha]], columns=COLUMNAS)
-    escribir_header = not os.path.exists(ARCHIVO) or os.path.getsize(ARCHIVO) == 0
-    nuevo.to_csv(ARCHIVO, mode="a", header=escribir_header, index=False, encoding='utf-8')
+    hoja = conectar()
+    hoja.append_row([nombre, categoria, float(monto), str(fecha)])
 
 def leer_gastos() -> pd.DataFrame:
     try:
-        if os.path.exists(ARCHIVO):
-            df = pd.read_csv(ARCHIVO)
-            return df if not df.empty else pd.DataFrame(columns=COLUMNAS)
+        hoja = conectar()
+        datos = hoja.get_all_records()
+        if datos:
+            return pd.DataFrame(datos, columns=COLUMNAS)
         return pd.DataFrame(columns=COLUMNAS)
-    except (pd.errors.EmptyDataError, pd.errors.ParserError):
-        return pd.DataFrame(columns=COLUMNAS) 
-    
+    except Exception:
+        return pd.DataFrame(columns=COLUMNAS)
 
 def eliminar_gasto(indice: int) -> None:
-    df = leer_gastos()
-    df = df.drop(index=indice).reset_index(drop=True)
-    df.to_csv(ARCHIVO, index=False, encoding='utf-8')
+    hoja = conectar()
+    hoja.delete_rows(indice + 2)  # +2 por encabezado y porque Sheets empieza en 1
