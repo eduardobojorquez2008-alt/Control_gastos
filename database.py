@@ -14,7 +14,7 @@ def conectar():
     return cliente.open_by_key(SHEET_ID).sheet1
 
 def inicializar_archivo():
-    pass  
+    pass
 
 def guardar_gasto(nombre: str, categoria: str, monto: float, fecha) -> None:
     hoja = conectar()
@@ -32,5 +32,6 @@ def leer_gastos() -> pd.DataFrame:
 
 def eliminar_gasto(indice: int) -> None:
     hoja = conectar()
-    hoja.delete_rows(indice + 2)  
+    hoja.delete_rows(indice + 2)
+
 
