@@ -2,7 +2,6 @@ import streamlit as st
 from database import inicializar_archivo, guardar_gasto, leer_gastos, eliminar_gasto
 from datetime import date
 st.set_page_config(page_title="Finanzas", page_icon="💳", layout="centered")
-st.markdown("## 💳 Finanzas")
 st.title("Control de gastos personales 💵")
 
 inicializar_archivo()
@@ -45,4 +44,5 @@ else:
         st.success("Gasto eliminado correctamente.")
 
         st.rerun()
+
 
